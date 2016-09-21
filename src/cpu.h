@@ -10,6 +10,17 @@ public:
 	virtual void WriteRegister(uint32_t reg, uint8_t val) = 0;
 };
 
+#define OP_CODE(x) ((x >> 24) & 0xff)
+
+// Load format:
+// |--------|----|----|----------------|
+// | 8b op  | Ra | Rb |   16 bit Cx    |
+// |--------|----|----|----------------|
+
+#define LOAD_Ra(x) ((x >> 20) & 0xf)
+#define LOAD_Rb(x) ((x >> 16) & 0xf)
+#define LOAD_Cx(x) (x & 0xffff)
+
 class CCPU
 {
 public:
