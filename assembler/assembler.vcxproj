@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C3EA2BCE-C0BE-46EA-89CE-2D1D91C1DB87}</ProjectGuid>
+    <ProjectGuid>{65BF5624-653F-4DD4-9BBC-254D981979FB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>hwarch</RootNamespace>
+    <RootNamespace>assembler</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -142,16 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\cpu.cpp" />
-    <ClCompile Include="src\dkcpu.cpp" />
-    <ClCompile Include="src\helpers.cpp" />
-    <ClCompile Include="src\test.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\cpu.h" />
-    <ClInclude Include="src\dkcpu.h" />
-    <ClInclude Include="src\helpers.h" />
-    <ClInclude Include="src\opcodes.h" />
+    <ClCompile Include="src\main.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
