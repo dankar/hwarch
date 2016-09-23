@@ -172,7 +172,7 @@ public:
 };
 
 // Indirect. [Val + Offset]
-template <uint8_t memory_access_width, class T, uint32_t bits>
+template <uint8_t memory_access_width, class T, uint32_t offset_bits>
 class Indirect
 {
 private:
@@ -193,12 +193,12 @@ public:
 	{
 		m_val.Parse(operation);
 		operation <<= m_val.GetSize();
-		m_offset = GetBitsValue(operation, bits);
-		return operation << bits;
+		m_offset = GetBitsValue(operation, offset_bits);
+		return operation << offset_bits;
 	}
 	static uint32_t GetSize()
 	{
-		return T::GetSize() + bits;
+		return T::GetSize() + offset_bits;
 	}
 	uint32_t GetValue(CPU *cpu)
 	{

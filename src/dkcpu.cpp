@@ -3,7 +3,7 @@
 uint32_t add(CPU *cpu, uint32_t a, uint32_t b)
 {
 	uint64_t res = a + b;
-	if (res > (2 ^ 32 - 1))
+	if (res > (2ULL << 32 - 1))
 		cpu->m_state.registers[CPU::FLAGS] |= CPU::CARRY;
 	else
 		cpu->m_state.registers[CPU::FLAGS] &= ~CPU::CARRY;
@@ -75,6 +75,29 @@ uint32_t jnz(CPU *cpu, uint32_t a, uint32_t b)
 	}
 }
 
+uint32_t shl(CPU *cpu, uint32_t a, uint32_t b)
+{
+	return a << b;
+}
+
+uint32_t shr(CPU *cpu, uint32_t a, uint32_t b)
+{
+	return a >> b;
+}
+
+uint32_t rol(CPU *cpu, uint32_t a, uint32_t b)
+{
+	uint32_t save = (a >> (32 - b) & ((2UL << b) - 1));
+
+	return (a << b) | save;
+}
+
+uint32_t ror(CPU *cpu, uint32_t a, uint32_t b)
+{
+	uint32_t save = (a & ((2UL << b) - 1) << (32 - b));
+	return (a >> b) | save;
+}
+
 void LoadCPUInstructions(CPU *cpu)
 {
 	// Operation<1 byte opcode, function to call, update_ip, where to put result, parameter 1, parameter 2, optional padding>::Register(&cpu, string for disassembly
@@ -88,14 +111,12 @@ void LoadCPUInstructions(CPU *cpu)
 
 	Operation<0x01, add, true, 
 		Register<4>, 
-		Indirect<32, 
-		Register<4>, 0>, 
+		Indirect<32, Register<4>, 0>, 
 		NullVal<0>, 
 		0>::Register(cpu, "ld");
 
 	Operation<0x02, add, true, 
-		Indirect<32, 
-		Register<4>, 0>, 
+		Indirect<32, Register<4>, 0>, 
 		Register<4>, 
 		NullVal<0>, 
 		0>::Register(cpu, "ld");
@@ -107,10 +128,9 @@ void LoadCPUInstructions(CPU *cpu)
 		0>::Register(cpu, "ld");
 
 	Operation<0x04, add, true, 
-		Indirect<32, 
-		Register<4>, 16>, 
+		Indirect<32, Register<4>, 20>, 
 		Register<4>, 
-		NullVal<0>, 
+		NullVal<4>,
 		0>::Register(cpu, "ld");
 
 	Operation<0x05, add, true, 
@@ -154,6 +174,30 @@ void LoadCPUInstructions(CPU *cpu)
 		Register<4>,
 		Register<4>, 
 		4>::Register(cpu, "sub");
+
+	Operation<0x0c, shl, true,
+		Register<4>,
+		Register<4>,
+		Register<4>,
+		4>::Register(cpu, "shl");
+
+	Operation<0x0d, shr, true,
+		Register<4>,
+		Register<4>,
+		Register<4>,
+		4>::Register(cpu, "shr");
+
+	Operation<0x0e, rol, true,
+		Register<4>,
+		Register<4>,
+		Register<4>,
+		4>::Register(cpu, "rol");
+
+	Operation<0x0f, ror, true,
+		Register<4>,
+		Register<4>,
+		Register<4>,
+		4>::Register(cpu, "ror");
 
 	Operation<0xef, cmp, true, 
 		NullVal<0>, 

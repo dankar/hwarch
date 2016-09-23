@@ -1,6 +1,8 @@
 #pragma once
 
 // Opcode		Assembler			C				Format
+
+// 32 bit loads
 // 0x00			ld Ra, Rb			Ra = Rb			F1 (Ra, Rb)
 // 0x01			ld Ra, [Rb]			Ra = [Rb]       F1 (Ra, Rb)
 // 0x02			ld [Ra], Rb			[Ra] = Rb       F1 (Ra, Rb)
@@ -15,6 +17,11 @@
 
 // 0x0a			add Ra, Rb, Rc		Ra = Rb + Rc	F4 (Ra, Rb, Rc)
 // 0x0b			sub Ra, Rb, Rc		Ra = Rb - Rc	F4 (Ra, Rb, Rc)
+
+// 0x0c			shl Ra, Rb, Rc		Ra = Rb << Rc	Ra, Rb, Rc
+// 0x0d			shr Ra, Rb, Rc		Ra = Rb >> Rc	Ra, Rb, Rc
+// 0x0e			rol Ra, Rb, Rc		Ra = Rb rol Rc  Ra, Rb, Rc
+// 0x0d			ror Ra, Rb, Rc		Ra = Rb Ror Rc	Ra, Rb, Rc
 
 // 0xef			cmp Ra, Rb			Ra - Rc			Op Ra Rb
 // 0xf0			jmp Imm				goto Imm		F3 (Imm)
