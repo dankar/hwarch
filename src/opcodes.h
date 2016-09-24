@@ -1,7 +1,7 @@
 #pragma once
 
 // Opcode		Assembler			C				Format
-
+// Operation<0x02, add, true, Indirect<32, Register<4>, 0>, Register<4>, NullVal<0>, 0>::Register(cpu, "ld");
 // 32 bit loads
 // 0x00			ld Ra, Rb			Ra = Rb			F1 (Ra, Rb)
 // 0x01			ld Ra, [Rb]			Ra = [Rb]       F1 (Ra, Rb)

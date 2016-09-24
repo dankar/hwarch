@@ -1,11 +1,8 @@
-
-ld %r0, 0x1234
-ld %r1, %r0
-ld %r2, %r1
-
-ld %r3, 0x100
-ld [%r3], %r0
-ld [%r3+0x4], %r0
-ld %r10, [%r3+0x4]
-
-jmp 0x0
+	ld %r0, 0x0
+	ld %r1, 0xa
+	xor %r2, %r2, %r2
+	ld %r3, 0x1
+	add %r2, %r2, %r3
+	cmp %r2, %r1
+	jnz  0x15
+	hlt

@@ -171,78 +171,6 @@ public:
 	}
 };
 
-// Indirect. [Val + Offset]
-template <uint8_t memory_access_width, class T, uint32_t offset_bits>
-class Indirect
-{
-private:
-	T m_val;
-	uint32_t m_offset;
-public:
-	void GetString(std::stringstream &s, CPU *cpu)
-	{
-		// [val.GetString + m_Offset]
-		s << "[";
-		m_val.GetString(s, cpu);
-		if (m_offset)
-			s << " + " << m_offset << "]";
-		else
-			s << "]";
-	}
-	uint64_t Parse(uint64_t operation)
-	{
-		m_val.Parse(operation);
-		operation <<= m_val.GetSize();
-		m_offset = GetBitsValue(operation, offset_bits);
-		return operation << offset_bits;
-	}
-	static uint32_t GetSize()
-	{
-		return T::GetSize() + offset_bits;
-	}
-	uint32_t GetValue(CPU *cpu)
-	{
-		uint32_t ptr = m_val.GetValue(cpu) + m_offset;
-		if (memory_access_width == 8)
-		{
-			return cpu->ReadMemory8(ptr);
-		}
-		else if (memory_access_width == 16)
-		{
-			return cpu->ReadMemory16(ptr);
-		}
-		else if (memory_access_width == 32)
-		{
-			return cpu->ReadMemory32(ptr);
-		}
-		else
-		{
-			assert(0, "Invalid memory access width for indirect");
-			return 0;
-		}
-	}
-	void SetValue(uint32_t val, CPU *cpu)
-	{
-		uint32_t ptr = m_val.GetValue(cpu) + m_offset;
-		if (memory_access_width == 8)
-		{
-			return cpu->WriteMemory8(ptr, val & 0xff);
-		}
-		else if (memory_access_width == 16)
-		{
-			return cpu->WriteMemory16(ptr, val & 0xffff);
-		}
-		else if (memory_access_width == 32)
-		{
-			return cpu->WriteMemory32(ptr, val);
-		}
-		else
-		{
-			assert(0, "Invalid memory access width for indirect");
-		}
-	}
-};
-
 template <uint32_t bits>
 class Register
 {
@@ -269,6 +197,83 @@ public:
 	void SetValue(uint32_t val, CPU *cpu)
 	{
 		return cpu->WriteRegister(m_register_number, val);
+	}
+};
+
+// Indirect. [Val + Offset]
+template <uint8_t memory_access_width, class T, class O>
+class Indirect
+{
+private:
+	T m_val;
+	O m_offset;
+public:
+	void GetString(std::stringstream &s, CPU *cpu)
+	{
+		// [val.GetString + m_Offset]
+		s << "[";
+		m_val.GetString(s, cpu);
+		if (m_offset.GetSize())
+		{
+			s << " + ";
+			m_offset.GetString(s, cpu);
+			s << "]";
+		}
+		else
+			s << "]";
+	}
+	uint64_t Parse(uint64_t operation)
+	{
+		m_val.Parse(operation);
+		operation <<= m_val.GetSize();
+		m_offset.Parse(operation);
+		operation <<= m_offset.GetSize();
+		return operation << m_offset.GetSize();
+	}
+	static uint32_t GetSize()
+	{
+		return T::GetSize() + O::GetSize();
+	}
+	uint32_t GetValue(CPU *cpu)
+	{
+		uint32_t ptr = m_val.GetValue(cpu) + m_offset.GetValue(cpu);
+		if (memory_access_width == 8)
+		{
+			return cpu->ReadMemory8(ptr);
+		}
+		else if (memory_access_width == 16)
+		{
+			return cpu->ReadMemory16(ptr);
+		}
+		else if (memory_access_width == 32)
+		{
+			return cpu->ReadMemory32(ptr);
+		}
+		else
+		{
+			assert(0, "Invalid memory access width for indirect");
+			return 0;
+		}
+	}
+	void SetValue(uint32_t val, CPU *cpu)
+	{
+		uint32_t ptr = m_val.GetValue(cpu) + m_offset.GetValue(cpu);
+		if (memory_access_width == 8)
+		{
+			return cpu->WriteMemory8(ptr, val & 0xff);
+		}
+		else if (memory_access_width == 16)
+		{
+			return cpu->WriteMemory16(ptr, val & 0xffff);
+		}
+		else if (memory_access_width == 32)
+		{
+			return cpu->WriteMemory32(ptr, val);
+		}
+		else
+		{
+			assert(0, "Invalid memory access width for indirect");
+		}
 	}
 };
 

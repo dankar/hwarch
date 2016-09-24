@@ -23,7 +23,151 @@ typedef struct
 } instruction_t;
 
 instruction_t instructions[] = {
-	{ "ld",
+	{ "ld",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x00
+	},
+	{ "ld",{
+		{ REG, 0, 0 },
+		{ IND, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x01
+	},
+	{ "ld",{
+		{ IND, 0, 0 },
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x02
+	},
+	{ "ld",{
+		{ REG, 0, 0 },
+		{ IND_OFFSET, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x03
+	},
+	{ "ld",{
+		{ IND_OFFSET, 0, 0 },
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x04
+	},
+	{ "ld",{
+		{ REG, 0, 0 },
+		{ IMM, 0, 0 },
+	},
+	0x05
+	},
+	{ "xor",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x06
+	},
+	{ "and",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x07
+	},
+	{ "or",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x08
+	},
+	{ "not",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x09
+	},
+	{ "add",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0a
+	},
+	{ "sub",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0b
+	},
+	{ "shl",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0c
+	},
+	{ "shr",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0d
+	},
+	{ "rol",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0e
+	},
+	{ "ror",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+	},
+	0x0f
+	},
+	{ "hlt",{
+		{ NONE, 0, 0 },
+		{ NONE, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x30
+	},
+	{ "cmp",{
+		{ REG, 0, 0 },
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0xef
+	},
+	{ "jmp",{
+		{ IMM, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0xf0
+	},
+	{ "jz",{
+		{ IMM, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0xf1
+	},
+	{ "jnz",{
+		{ IMM, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0xf2
+	}
+			};
+	/*{ "ld",
 		{
 			{ REG, 0, 0 },
 			{ REG, 0, 0 },
@@ -79,7 +223,7 @@ instruction_t instructions[] = {
 		},
 		0xf0
 	}
-};
+};*/
 
 int strcomp(const char *str1, const char *str2)
 {
@@ -149,7 +293,7 @@ int is_eol(const char *str)
 
 const char* get_instruction(const char *code, char *instruction)
 {
-	while (!is_whitespace(code))
+	while (!is_whitespace(code) && *code != '\r' && *code != '\n')
 	{
 		*instruction++ = *code++;
 	}
@@ -238,9 +382,9 @@ uint8_t hex_to_dec(char c)
 	if (c >= '0' && c <= '9')
 		return c - '0';
 	else if (c >= 'a' && c <= 'f')
-		return c - 'a' + 9;
+		return c - 'a' + 10;
 	else if(c >= 'A' && c <= 'F')
-		return c - 'A' + 9;
+		return c - 'A' + 10;
 }
 
 const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
@@ -518,6 +662,12 @@ void parse_code(const char *code, int number_of_bytes)
 
 			if (*code == ',')
 				code++;
+
+			if (i == 2)
+			{
+				if (!emit_code(&inst))
+					printf("%d: %s", line_number, current_line);
+			}
 		}
 
 		code = goto_next_line(code);
@@ -550,6 +700,7 @@ int main(int argc, char *argv[])
 
 	parse_code(filebuffer, size);
 
+	
 
 	return 0;
 }
