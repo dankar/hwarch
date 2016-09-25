@@ -385,6 +385,7 @@ uint8_t hex_to_dec(char c)
 		return c - 'a' + 10;
 	else if(c >= 'A' && c <= 'F')
 		return c - 'A' + 10;
+	else return 0;
 }
 
 const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
@@ -409,7 +410,7 @@ const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
 	return code;
 }
 
-const char* get_operator(const char *code, argument_t *argument)
+const char* get_operand(const char *code, argument_t *argument)
 {
 	int tmp;
 	uint32_t imm_val = 0;
@@ -602,6 +603,8 @@ int emit_code(instruction_t *inst)
 		half_byte = 0;
 		output_bytes++;
 	}
+
+	return 1;
 }
 
 void parse_code(const char *code, int number_of_bytes)
@@ -651,7 +654,7 @@ void parse_code(const char *code, int number_of_bytes)
 					printf("%d: %s", line_number, current_line);
 				break;
 			}
-			if ((code = get_operator(code, &arg)))
+			if ((code = get_operand(code, &arg)))
 			{
 				inst.arg[i] = arg;
 			}

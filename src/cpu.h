@@ -281,7 +281,7 @@ typedef uint32_t(*OperationFunction)(CPU *cpu, uint32_t arg1, uint32_t arg2);
 
 
 
-template <uint8_t op_code, OperationFunction func, bool update_ip, class lval, class rval1, class rval2, uint8_t padding>
+template <uint8_t op_code, OperationFunction func, bool update_ip, class result_val, class operand1, class operand2, uint8_t padding_bits>
 class Operation : public BaseOperation
 {
 private:
@@ -290,7 +290,7 @@ private:
 public:
 	static void Register(CPU *cpu, const char* str)
 	{
-		BaseOperation *op = new Operation<op_code, func, update_ip, lval, rval1, rval2, padding>(cpu, str);
+		BaseOperation *op = new Operation<op_code, func, update_ip, result_val, operand1, operand2, padding_bits>(cpu, str);
 		cpu->RegisterOp(op_code, op);
 	}
 	Operation(CPU *cpu, const char *assembler) :
@@ -304,63 +304,72 @@ public:
 	}
 	void GetString(std::stringstream &s, uint64_t operation)
 	{
-		lval l;
-		rval1 a1;
-		rval2 a2;
+		result_val result;
+		operand1 op1;
+		operand2 op2;
+		bool anything_printed = false;
 		// Skip opcode
 		operation <<= 8;
 
-		operation = l.Parse(operation);
-		operation = a1.Parse(operation);
-		operation = a2.Parse(operation);
+		operation = result.Parse(operation);
+		operation = op1.Parse(operation);
+		operation = op2.Parse(operation);
 
 		s << m_assembler << " ";
 
-		l.GetString(s, m_cpu);
-
-		if (a1.GetSize())
+		if (result.GetSize())
 		{
-			s << ", ";
-			a1.GetString(s, m_cpu);
+			anything_printed = true;
+			result.GetString(s, m_cpu);
 		}
-		if (a2.GetSize())
+
+		if (op1.GetSize())
 		{
-			s << ", ";
-			a2.GetString(s, m_cpu);
+			if(anything_printed)
+				s << ", ";
+			op1.GetString(s, m_cpu);
+			anything_printed = true;
+		}
+		if (op2.GetSize())
+		{
+			if (anything_printed)
+				s << ", ";
+			op2.GetString(s, m_cpu);
+			anything_printed = true;
 		}
 	}
 	void Execute(uint64_t operation)
 	{
-		lval l;
-		rval1 a1;
-		rval2 a2;
-		uint32_t result;
+		result_val result;
+		operand1 op1;
+		operand2 op2;
+		uint32_t res;
 		// Skip opcode
 		operation <<= 8;
 
-		operation = l.Parse(operation);
-		operation = a1.Parse(operation);
-		operation = a2.Parse(operation);
+		operation = result.Parse(operation);
+		operation = op1.Parse(operation);
+		operation = op2.Parse(operation);
 
-		result = func(m_cpu, a1.GetValue(m_cpu), a2.GetValue(m_cpu));
+		res = func(m_cpu, op1.GetValue(m_cpu), op2.GetValue(m_cpu));
 
-		if (result & 0x80000000)
+		if (res & 0x80000000)
 			m_cpu->m_state.registers[CPU::FLAGS] |= CPU::SIGN;
 		else
 			m_cpu->m_state.registers[CPU::FLAGS] &= ~CPU::SIGN;
 
-		if (result == 0)
+		if (res == 0)
 			m_cpu->m_state.registers[CPU::FLAGS] |= CPU::ZERO;
 		else
 			m_cpu->m_state.registers[CPU::FLAGS] &= ~CPU::ZERO;
 
-		l.SetValue(result, m_cpu);
+		result.SetValue(res, m_cpu);
 
-		if (update_ip || result)
+		if (update_ip || res)
 			m_cpu->m_state.ip += GetSize() / 8;
 	}
 	uint32_t GetSize()
 	{
-		return 8 + lval::GetSize() + rval1::GetSize() + rval2::GetSize() + padding;
+		return 8 + result_val::GetSize() + operand1::GetSize() + operand2::GetSize() + padding_bits;
 	}
 };

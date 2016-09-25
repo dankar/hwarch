@@ -15,6 +15,15 @@ CPU::CPU(uint32_t memory_size) :
 CPU::~CPU()
 {
 	delete[] m_state.memory;
+
+	for (uint32_t i = 0; i < 256; i++)
+	{
+		if (m_operations[i] != 0)
+		{
+			delete m_operations[i];
+			m_operations[i] = 0;
+		}
+	}
 }
 
 uint32_t CPU::ReadMemory32(uint32_t offset)
