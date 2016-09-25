@@ -7,6 +7,7 @@
 #define IND 2
 #define IND_OFFSET 3
 #define IMM 4
+#define SYMBOL 0x80
 
 typedef struct
 {
@@ -225,6 +226,25 @@ instruction_t instructions[] = {
 	}
 };*/
 
+void strcopy(char *dest, const char *src)
+{
+	while (*src)
+	{
+		*dest++ = *src++;
+	}
+
+	*dest = *src;
+}
+
+int strlength(const char *src)
+{
+	int l = 0;
+
+	while (*src++) l++;
+
+	return l;
+}
+
 int strcomp(const char *str1, const char *str2)
 {
 	while(*str1 && *str2)
@@ -291,14 +311,14 @@ int is_eol(const char *str)
 		return 0;
 }
 
-const char* get_instruction(const char *code, char *instruction)
+const char* get_symbol(const char *code, char *symbol)
 {
-	while (!is_whitespace(code) && *code != '\r' && *code != '\n')
+	while (!is_whitespace(code) && *code != '\r' && *code != '\n' && *code != '\'' && *code != ']')
 	{
-		*instruction++ = *code++;
+		*symbol++ = *code++;
 	}
 
-	*instruction = '\0';
+	*symbol = '\0';
 
 	return code;
 }
@@ -326,11 +346,117 @@ const char* get_instruction(const char *code, char *instruction)
 #define R14 14
 #define FP 14
 #define R15 15
-#define SP 15,
+#define SP 15
 
-uint8_t output_byte_code[4096];
+typedef struct
+{
+	const char name[256];
+	uint32_t position;
+	uint32_t size;
+} symbol_t;
+
+uint8_t output_byte_code[4096] = { 0 };
 int half_byte = 0;
 uint8_t output_bytes = 0;
+symbol_t symbols[256] = { 0 };
+symbol_t symbol_references[256] = { 0 };
+
+void insert_symbol(const char *instruction, uint32_t position)
+{
+	int i = 0;
+	for (; i < 256; i++)
+	{
+		if (symbols[i].name[0] == 0)
+		{
+			strcopy(symbols[i].name, instruction);
+			symbols[i].position = position;
+			break;
+		}
+	}
+
+	if (i == 255)
+	{
+		printf("Output of symbols!\n");
+		__debugbreak();
+	}
+}
+
+uint32_t insert_symbol_reference(const char *instruction, uint32_t position)
+{
+	int i = 0;
+	for (; i < 256; i++)
+	{
+		if (symbol_references[i].name[0] == 0)
+		{
+			strcopy(symbol_references[i].name, instruction);
+			break;
+		}
+	}
+
+	if (i == 255)
+	{
+		printf("Output of symbol references!\n");
+		__debugbreak();
+	}
+
+	return i;
+}
+
+void resolve_symbols()
+{
+	int i, j;
+	uint32_t ptr, value;
+	int resolved;
+
+	for (i = 0; i < 256; i++)
+	{
+		if (symbol_references[i].name[0] != 0)
+		{
+			ptr = symbol_references[i].position;
+			resolved = 0;
+
+			for (j = 0; j < 256; j++)
+			{
+				if (symbols[j].name[0] != 0)
+				{
+					if (strcomp(symbols[j].name, symbol_references[i].name))
+					{
+						value = symbols[j].position;
+
+						if (symbol_references[i].size == 4)
+						{
+							output_byte_code[ptr] = (value >> 24) & 0xff;
+							output_byte_code[ptr + 1] = (value >> 16) & 0xff;
+							output_byte_code[ptr + 2] = (value >> 8) & 0xff;
+							output_byte_code[ptr + 3] = (value) & 0xff;
+						}
+						else if(symbol_references[i].size == 2)
+						{
+							output_byte_code[ptr] = (value >> 8) & 0xff;
+							output_byte_code[ptr + 1] = (value) & 0xff;
+						}
+						else
+						{
+							printf("Unknown size for symbol\n");
+							__debugbreak();
+						}
+						resolved = 1;
+						break;
+					}
+				}
+			}
+
+			if (!resolved)
+			{
+				printf("Unknown symbol '%s'\n", symbol_references[i].name);
+				__debugbreak();
+			}
+		}
+	}
+
+}
+
+
 
 char *register_names[] = { "%r0", "%r1", "%r2", "%r3", "%r4", "%r5", "%r6", "%r7", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15" };
 
@@ -390,7 +516,17 @@ uint8_t hex_to_dec(char c)
 
 const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
 {
+	char symbol[256];
 	*imm_val = 0;
+
+	if (*code != '0')
+	{
+		code = get_symbol(code, symbol);
+		
+		*error = SYMBOL;
+		*imm_val = insert_symbol_reference(symbol, output_bytes);
+		return code;
+	}
 	code++;
 	if (*code != 'x')
 	{
@@ -406,7 +542,7 @@ const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
 		*imm_val += hex_to_dec(*code);
 		code++;
 	}
-	*error = 0;
+	*error = IMM;
 	return code;
 }
 
@@ -464,7 +600,10 @@ const char* get_operand(const char *code, argument_t *argument)
 			printf("Invalid immediate in indirect\n");
 			__debugbreak();
 		}
-		argument->type = IND_OFFSET;
+		if(tmp == SYMBOL)
+			argument->type = IND_OFFSET | SYMBOL;
+		else
+			argument->type = IND_OFFSET;
 		argument->val2 = imm_val;
 
 		code = skip_whitespace(code);
@@ -480,7 +619,7 @@ const char* get_operand(const char *code, argument_t *argument)
 			__debugbreak();
 		}
 	}
-	else if (*code == '0')
+	else
 	{
 		argument->type = IMM;
 
@@ -490,15 +629,13 @@ const char* get_operand(const char *code, argument_t *argument)
 			printf("Invalid immediate\n");
 			__debugbreak();
 		}
+		if (tmp == SYMBOL)
+			argument->type |= SYMBOL;
 
 		argument->value = imm_val;
 		return code;
 	}
-	else
-	{
-		printf("Unknown parameter for operator\n");
-		__debugbreak();
-	}
+
 	return 0;
 }
 
@@ -560,7 +697,7 @@ int emit_code(instruction_t *inst)
 
 		for (j = 0; j < 3; j++)
 		{
-			if (instructions[i].arg[j].type != inst->arg[j].type)
+			if (instructions[i].arg[j].type != (inst->arg[j].type & ~SYMBOL))
 			{
 				found = 0;
 			}
@@ -579,22 +716,47 @@ int emit_code(instruction_t *inst)
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (inst->arg[i].type == REG)
+		uint8_t operand_type = inst->arg[i].type & ~SYMBOL;
+		if (operand_type == REG)
 		{
 			emit_register(inst->arg[i].value);
 		}
-		if (inst->arg[i].type == IMM)
+		else if (operand_type == IMM)
 		{
+			if (inst->arg[i].type & SYMBOL)
+			{
+				symbol_references[inst->arg[i].value].position = output_bytes;
+				symbol_references[inst->arg[i].value].size = 4;
+			}
 			emit_immediate(inst->arg[i].value);
 		}
-		if (inst->arg[i].type == IND)
+		else if (operand_type == IND)
 		{
 			emit_register(inst->arg[i].value);
 		}
-		if (inst->arg[i].type == IND_OFFSET)
+		else if (operand_type == IND_OFFSET)
 		{
 			emit_register(inst->arg[i].value);
+			
+			if (half_byte)
+			{
+				half_byte = 0;
+				output_bytes++;
+			}
+			if (inst->arg[i].type & SYMBOL)
+			{
+				symbol_references[inst->arg[i].val2].position = output_bytes;
+				symbol_references[inst->arg[i].val2].size = 2;
+			}
 			emit_immediate16(inst->arg[i].val2);
+		}
+		else if (operand_type == NONE)
+		{
+
+		}
+		else
+		{
+			__debugbreak();
 		}
 	}
 
@@ -612,7 +774,7 @@ void parse_code(const char *code, int number_of_bytes)
 	int i;
 	int state = 0;
 	int line_number = 1;
-	char instruction[5];
+	char instruction[10];
 	const char *current_line;
 	const char *code_beginning = code;
 	instruction_t inst = { 0 };
@@ -626,6 +788,7 @@ void parse_code(const char *code, int number_of_bytes)
 			inst.arg[i].value = 0;
 			inst.arg[i].val2 = 0;
 		}
+		
 		current_line = code;
 		code = skip_whitespace(code);
 		if (code >= (code_beginning + number_of_bytes)) return;
@@ -638,8 +801,15 @@ void parse_code(const char *code, int number_of_bytes)
 			continue;
 		}
 
-		code = get_instruction(code, instruction);
+		code = get_symbol(code, instruction);
 		if (code >= (code_beginning + number_of_bytes)) return;
+
+		if (instruction[strlength(instruction) - 1] == ':')
+		{
+			instruction[strlength(instruction) - 1] = '\0';
+			insert_symbol(instruction, output_bytes);
+			continue;
+		}
 
 		inst.operator = instruction;
 
@@ -682,7 +852,8 @@ void parse_code(const char *code, int number_of_bytes)
 int main(int argc, char *argv[])
 {
 	char *filebuffer;
-	int size = 0;
+	int size = 0, i;
+	size_t read;
 	FILE* fp;
 	if (argc != 2)
 	{
@@ -697,13 +868,22 @@ int main(int argc, char *argv[])
 
 	filebuffer = (char*)malloc(size);
 
-	fread(filebuffer, 1, size, fp);
+	read = fread(filebuffer, 1, size, fp);
 
 	fclose(fp);
 
-	parse_code(filebuffer, size);
+	parse_code(filebuffer, read);
 
-	
+	resolve_symbols();
+
+	printf("{ ");
+
+	for (i = 0; i < output_bytes; i++)
+	{
+		printf("0x%02x, ", output_byte_code[i]);
+	}
+
+	printf(" };");
 
 	return 0;
 }

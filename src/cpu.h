@@ -228,7 +228,7 @@ public:
 		operation <<= m_val.GetSize();
 		m_offset.Parse(operation);
 		operation <<= m_offset.GetSize();
-		return operation << m_offset.GetSize();
+		return operation;
 	}
 	static uint32_t GetSize()
 	{
