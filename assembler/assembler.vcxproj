@@ -142,10 +142,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\cpu_definition.c" />
+    <ClCompile Include="src\instructions.c" />
     <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\strings.c" />
+    <ClCompile Include="src\symbols.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="test.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\cpu_definition.h" />
+    <ClInclude Include="src\instructions.h" />
+    <ClInclude Include="src\strings.h" />
+    <ClInclude Include="src\symbols.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,360 +2,15 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define NONE 0
-#define REG 1
-#define IND 2
-#define IND_OFFSET 3
-#define IMM 4
-#define SYMBOL 0x80
+#include "instructions.h"
+#include "cpu_definition.h"
+#include "strings.h"
+#include "symbols.h"
 
-typedef struct
+const char* read_symbol(const char *code, char *symbol)
 {
-	uint8_t type;
-	uint32_t value;
-	uint32_t val2;
-} argument_t;
+	code = skip_whitespace(code);
 
-typedef struct
-{
-	const char* operator;
-	argument_t arg[3];
-	uint8_t op_code;
-} instruction_t;
-
-instruction_t instructions[] = {
-	{ "ld",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x00
-	},
-	{ "ld",{
-		{ REG, 0, 0 },
-		{ IND, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x01
-	},
-	{ "ld",{
-		{ IND, 0, 0 },
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x02
-	},
-	{ "ld",{
-		{ REG, 0, 0 },
-		{ IND_OFFSET, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x03
-	},
-	{ "ld",{
-		{ IND_OFFSET, 0, 0 },
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x04
-	},
-	{ "ld",{
-		{ REG, 0, 0 },
-		{ IMM, 0, 0 },
-	},
-	0x05
-	},
-	{ "xor",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x06
-	},
-	{ "and",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x07
-	},
-	{ "or",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x08
-	},
-	{ "not",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x09
-	},
-	{ "add",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0a
-	},
-	{ "sub",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0b
-	},
-	{ "shl",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0c
-	},
-	{ "shr",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0d
-	},
-	{ "rol",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0e
-	},
-	{ "ror",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0x0f
-	},
-	{ "push",{
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x20
-	},
-	{ "push",{
-		{ IMM, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x21
-	},
-	{ "push",{
-		{ IND_OFFSET, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x22
-	},
-	{ "pop",{
-		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x23
-	},
-	{ "pop",{
-		{ IND_OFFSET, 0, 0 },
-		{ NONE, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x24
-	},
-	{ "hlt",{
-		{ NONE, 0, 0 },
-		{ NONE, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x30
-	},
-	{ "call",{
-		{ IMM, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x40
-	},
-	{ "ret",{
-		{ NONE, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0x41
-	},
-	{ "cmp",{
-		{ REG, 0, 0 },
-		{ REG, 0, 0 },
-	},
-	0xef
-	},
-	{ "jmp",{
-		{ IMM, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0xf0
-	},
-	{ "jz",{
-		{ IMM, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0xf1
-	},
-	{ "jnz",{
-		{ IMM, 0, 0 },
-		{ NONE, 0, 0 },
-	},
-	0xf2
-	}
-			};
-	/*{ "ld",
-		{
-			{ REG, 0, 0 },
-			{ REG, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0x00 
-	},
-	{ "ld",
-		{
-			{ REG, 0, 0 },
-			{ IND, 0, 0 },
-			{ NONE, 0, 0 },
-		},
-		0x01 
-	},
-	{ "ld", 
-		{
-			{ IND, 0, 0 },
-			{ REG, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0x02 
-	},
-	{ "ld",
-		{
-			{ REG, 0, 0 },
-			{ IND_OFFSET, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0x03 
-	},
-	{ "ld", 
-		{
-			{ IND_OFFSET, 0, 0 },
-			{ REG, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0x04 
-	},
-	{ "ld", 
-		{
-			{ REG, 0, 0 },
-			{ IMM, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0x05 
-	},
-	{ "jmp",
-		{
-			{ IMM, 0, 0 },
-			{ NONE, 0, 0 },
-			{ NONE, 0, 0 }
-		},
-		0xf0
-	}
-};*/
-
-void strcopy(char *dest, const char *src)
-{
-	while (*src)
-	{
-		*dest++ = *src++;
-	}
-
-	*dest = *src;
-}
-
-int strlength(const char *src)
-{
-	int l = 0;
-
-	while (*src++) l++;
-
-	return l;
-}
-
-int strcomp(const char *str1, const char *str2)
-{
-	while(*str1 && *str2)
-	{
-		if (*str1 != *str2)
-			return 0;
-		
-		str1++;
-		str2++;
-	}
-
-	if (*str1 != *str2)
-		return 0;
-	else
-		return 1;
-}
-
-const char *find_character(const char *str, char chr)
-{
-	return 0;
-}
-
-int is_whitespace(const char *str)
-{
-	if (*str == '\t' || *str == ' ')
-		return 1;
-	else
-		return 0;
-}
-
-const char *skip_whitespace(const char *str)
-{
-	while (is_whitespace(str))
-		str++;
-	
-	return str;
-}
-
-const char *goto_next_line(const char *str)
-{
-	int nl = 0;
-
-	for (;;)
-	{
-		if (*str == '\n' || *str == '\r')
-		{
-			nl = 1;
-			break;
-		}
-		str++;
-	}
-
-	while (*str == '\n' || *str == '\r')
-		str++;
-
-	return str;
-}
-
-int is_eol(const char *str)
-{
-	if (*str == '#' || *str == '\n' || *str == '\r')
-		return 1;
-	else
-		return 0;
-}
-
-const char* get_symbol(const char *code, char *symbol)
-{
 	while (!is_whitespace(code) && *code != '\r' && *code != '\n' && *code != '\'' && *code != ']')
 	{
 		*symbol++ = *code++;
@@ -366,166 +21,17 @@ const char* get_symbol(const char *code, char *symbol)
 	return code;
 }
 
-#define STATE_EMPTY 0
-#define STATE_GOT_INST 0
-#define STATE_GOT_A1 0
-#define STATE_GOT_A2
-
-#define R0 0
-#define R1 1
-#define R2 2
-#define R3 3
-#define R4 4
-#define R5 5
-#define R6 6
-#define R7 7
-#define R8 8
-#define R9 9
-#define R10 10
-#define R11 11
-#define R12 12
-#define R13 13
-#define FLAGS 13
-#define R14 14
-#define FP 14
-#define R15 15
-#define SP 15
-
-char *register_names[] = { "%r0", "%r1", "%r2", "%r3", "%r4", "%r5", "%r6", "%r7", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15" };
-
-int lookup_reg(const char *name)
-{
-	int i = 0;
-	for (; i < 16; i++)
-	{
-		if (strcomp(name, register_names[i]))
-		{
-			return i;
-		}
-	}
-
-	if (strcomp(name, "%flags"))
-		return 13;
-	if (strcomp(name, "%fp"))
-		return 14;
-	if (strcomp(name, "%sp"))
-		return 15;
-
-	return -1;
-}
-
-typedef struct
-{
-	char name[256];
-	uint32_t position;
-	uint32_t size;
-} symbol_t;
-
 uint8_t output_byte_code[4096] = { 0 };
 int half_byte = 0;
 uint32_t output_bytes = 0;
-symbol_t symbols[256] = { 0 };
-symbol_t symbol_references[256] = { 0 };
-
-void insert_symbol(const char *instruction, uint32_t position)
-{
-	int i = 0;
-	for (; i < 256; i++)
-	{
-		if (symbols[i].name[0] == 0)
-		{
-			strcopy(symbols[i].name, instruction);
-			symbols[i].position = position;
-			break;
-		}
-	}
-
-	if (i == 255)
-	{
-		printf("Output of symbols!\n");
-		__debugbreak();
-	}
-}
-
-uint32_t insert_symbol_reference(const char *instruction, uint32_t position)
-{
-	int i = 0;
-	for (; i < 256; i++)
-	{
-		if (symbol_references[i].name[0] == 0)
-		{
-			strcopy(symbol_references[i].name, instruction);
-			break;
-		}
-	}
-
-	if (i == 255)
-	{
-		printf("Output of symbol references!\n");
-		__debugbreak();
-	}
-
-	return i;
-}
-
-void resolve_symbols()
-{
-	int i, j;
-	uint32_t ptr, value;
-	int resolved;
-
-	for (i = 0; i < 256; i++)
-	{
-		if (symbol_references[i].name[0] != 0)
-		{
-			ptr = symbol_references[i].position;
-			resolved = 0;
-
-			for (j = 0; j < 256; j++)
-			{
-				if (symbols[j].name[0] != 0)
-				{
-					if (strcomp(symbols[j].name, symbol_references[i].name))
-					{
-						value = symbols[j].position;
-
-						if (symbol_references[i].size == 4)
-						{
-							output_byte_code[ptr] = (value >> 24) & 0xff;
-							output_byte_code[ptr + 1] = (value >> 16) & 0xff;
-							output_byte_code[ptr + 2] = (value >> 8) & 0xff;
-							output_byte_code[ptr + 3] = (value) & 0xff;
-						}
-						else if(symbol_references[i].size == 2)
-						{
-							output_byte_code[ptr] = (value >> 8) & 0xff;
-							output_byte_code[ptr + 1] = (value) & 0xff;
-						}
-						else
-						{
-							printf("Unknown size for symbol\n");
-							__debugbreak();
-						}
-						resolved = 1;
-						break;
-					}
-				}
-			}
-
-			if (!resolved)
-			{
-				printf("Unknown symbol '%s'\n", symbol_references[i].name);
-				__debugbreak();
-			}
-		}
-	}
-
-}
 
 const char* read_reg(const char *code, int *reg_out)
 {
 	char buff[10];
 	int counter = 0;
+
+	code = skip_whitespace(code);
+
 	while (!is_whitespace(code) && !is_eol(code) && *code != ',' && *code != ']' && *code != '+')
 	{
 		buff[counter] = *code++;
@@ -567,9 +73,11 @@ const char* read_immediate(const char *code, uint32_t *imm_val, int *error)
 	char symbol[256];
 	*imm_val = 0;
 
+	code = skip_whitespace(code);
+
 	if (*code != '0')
 	{
-		code = get_symbol(code, symbol);
+		code = read_symbol(code, symbol);
 		
 		*error = SYMBOL;
 		*imm_val = insert_symbol_reference(symbol, output_bytes);
@@ -618,8 +126,6 @@ const char* get_operand(const char *code, argument_t *argument)
 		code++;
 		argument->type = IND;
 
-		code = skip_whitespace(code);
-
 		code = read_reg(code, &tmp);
 		if (tmp == -1)
 		{
@@ -639,7 +145,6 @@ const char* get_operand(const char *code, argument_t *argument)
 		if (*code == '+')
 		{
 			code++;
-			code = skip_whitespace(code);
 		}
 
 		code = read_immediate(code, &imm_val, &tmp);
@@ -730,13 +235,24 @@ void emit_immediate16(uint32_t imm)
 	output_bytes += 2;
 }
 
+void emit_immediate8(uint32_t imm)
+{
+	if (half_byte)
+	{
+		half_byte = 0;
+		output_bytes++;
+	}
+	output_byte_code[output_bytes + 0] = (imm) & 0xff;
+	output_bytes += 1;
+}
+
 int emit_code(instruction_t *inst)
 {
 	int found = 0;
-	int i, j;
+	uint32_t i, j;
 	
 
-	for (i = 0; i < sizeof(instructions) / sizeof(instruction_t); i++)
+	for (i = 0; i < number_of_instructions; i++)
 	{
 		if (!strcomp(instructions[i].operator, inst->operator))
 			continue;
@@ -778,8 +294,7 @@ int emit_code(instruction_t *inst)
 			}
 			if (inst->arg[i].type & SYMBOL)
 			{
-				symbol_references[inst->arg[i].value].position = output_bytes;
-				symbol_references[inst->arg[i].value].size = 4;
+				update_symbol_position(inst->arg[i].value, output_bytes, 4);
 			}
 			emit_immediate(inst->arg[i].value);
 		}
@@ -798,8 +313,7 @@ int emit_code(instruction_t *inst)
 			}
 			if (inst->arg[i].type & SYMBOL)
 			{
-				symbol_references[inst->arg[i].val2].position = output_bytes;
-				symbol_references[inst->arg[i].val2].size = 2;
+				update_symbol_position(inst->arg[i].value, output_bytes, 2);
 			}
 			emit_immediate16(inst->arg[i].val2);
 		}
@@ -820,6 +334,81 @@ int emit_code(instruction_t *inst)
 	}
 
 	return 1;
+}
+
+void emit_variable(uint32_t size_in_bytes, uint32_t val)
+{
+	switch (size_in_bytes)
+	{
+	case 1:
+		emit_immediate8(val);
+		break;
+	case 2:
+		emit_immediate16(val);
+		break;
+	case 4:
+		emit_immediate(val);
+		break;
+	}
+}
+
+const char* do_variable(uint32_t size_in_bytes, const char *code)
+{
+	char instr[512];
+	uint32_t imm;
+	uint32_t repeat = 1;
+	uint32_t i;
+	int error;
+
+start:
+	code = read_immediate(code, &imm, &error);
+	if (error == -1)
+	{
+		printf("Invalid format for db\n");
+		__debugbreak();
+	}
+	if (error == SYMBOL)
+	{
+		printf("Unexpected symbol when parsing db\n");
+		__debugbreak();
+	}
+
+	emit_variable(size_in_bytes, imm);
+
+	if (!is_eol(code))
+	{
+		if (*code == ',')
+		{
+			code++;
+			goto start;
+		}
+		else
+		{
+			code = read_symbol(code, instr);
+			if (strcomp(instr, "rep"))
+			{
+				code = read_immediate(code, &repeat, &error);
+
+				if (error != IMM)
+				{
+					printf("Syntax error after rep\n");
+					__debugbreak();
+				}
+
+				for (i = 1; i < repeat; i++)
+				{
+					emit_variable(size_in_bytes, imm);
+				}
+			}
+			else
+			{
+				printf("Expected ',' or rep\n");
+				__debugbreak();
+			}
+		}
+	}
+	
+	return goto_next_line(code);
 }
 
 void parse_code(const char *code, int number_of_bytes)
@@ -854,13 +443,29 @@ void parse_code(const char *code, int number_of_bytes)
 			continue;
 		}
 
-		code = get_symbol(code, instruction);
+		code = read_symbol(code, instruction);
 		if (code >= (code_beginning + number_of_bytes)) return;
 
 		if (instruction[strlength(instruction) - 1] == ':')
 		{
 			instruction[strlength(instruction) - 1] = '\0';
 			insert_symbol(instruction, output_bytes);
+			continue;
+		}
+
+		if (strcomp(instruction, "db"))
+		{
+			code = do_variable(1, code);
+			continue;
+		}
+		if (strcomp(instruction, "dw"))
+		{
+			code = do_variable(2, code);
+			continue;
+		}
+		if (strcomp(instruction, "dd"))
+		{
+			code = do_variable(4, code);
 			continue;
 		}
 
@@ -927,7 +532,7 @@ int main(int argc, char *argv[])
 
 	parse_code(filebuffer, (int)read);
 
-	resolve_symbols();
+	resolve_symbols(output_byte_code);
 
 	printf("{ ");
 
