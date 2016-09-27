@@ -30,9 +30,15 @@
     <ClCompile Include="src\instructions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\assembler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="test.asm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="test2.asm">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -47,6 +53,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\instructions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

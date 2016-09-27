@@ -1,6 +1,7 @@
 		ld %sp, stack
 		call testfunc
 		call testfunc2
+		call another_func
 		hlt
 testfunc:
 		ld %r1, stack

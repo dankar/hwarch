@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\assembler.c" />
     <ClCompile Include="src\cpu_definition.c" />
     <ClCompile Include="src\instructions.c" />
     <ClCompile Include="src\main.c" />
@@ -150,8 +151,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="test.asm" />
+    <None Include="test2.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\assembler.h" />
     <ClInclude Include="src\cpu_definition.h" />
     <ClInclude Include="src\instructions.h" />
     <ClInclude Include="src\strings.h" />
