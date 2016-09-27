@@ -135,6 +135,38 @@ instruction_t instructions[] = {
 	},
 	0x0f
 	},
+	{ "push",{
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x20
+	},
+	{ "push",{
+		{ IMM, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x21
+	},
+	{ "push",{
+		{ IND_OFFSET, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x22
+	},
+	{ "pop",{
+		{ REG, 0, 0 },
+		{ NONE, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x23
+	},
+	{ "pop",{
+		{ IND_OFFSET, 0, 0 },
+		{ NONE, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x24
+	},
 	{ "hlt",{
 		{ NONE, 0, 0 },
 		{ NONE, 0, 0 },
@@ -142,10 +174,21 @@ instruction_t instructions[] = {
 	},
 	0x30
 	},
+	{ "call",{
+		{ IMM, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x40
+	},
+	{ "ret",{
+		{ NONE, 0, 0 },
+		{ NONE, 0, 0 },
+	},
+	0x41
+	},
 	{ "cmp",{
 		{ REG, 0, 0 },
 		{ REG, 0, 0 },
-		{ NONE, 0, 0 },
 	},
 	0xef
 	},
@@ -348,16 +391,39 @@ const char* get_symbol(const char *code, char *symbol)
 #define R15 15
 #define SP 15
 
+char *register_names[] = { "%r0", "%r1", "%r2", "%r3", "%r4", "%r5", "%r6", "%r7", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15" };
+
+int lookup_reg(const char *name)
+{
+	int i = 0;
+	for (; i < 16; i++)
+	{
+		if (strcomp(name, register_names[i]))
+		{
+			return i;
+		}
+	}
+
+	if (strcomp(name, "%flags"))
+		return 13;
+	if (strcomp(name, "%fp"))
+		return 14;
+	if (strcomp(name, "%sp"))
+		return 15;
+
+	return -1;
+}
+
 typedef struct
 {
-	const char name[256];
+	char name[256];
 	uint32_t position;
 	uint32_t size;
 } symbol_t;
 
 uint8_t output_byte_code[4096] = { 0 };
 int half_byte = 0;
-uint8_t output_bytes = 0;
+uint32_t output_bytes = 0;
 symbol_t symbols[256] = { 0 };
 symbol_t symbol_references[256] = { 0 };
 
@@ -454,24 +520,6 @@ void resolve_symbols()
 		}
 	}
 
-}
-
-
-
-char *register_names[] = { "%r0", "%r1", "%r2", "%r3", "%r4", "%r5", "%r6", "%r7", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15" };
-
-int lookup_reg(const char *name)
-{
-	int i = 0;
-	for (; i < 16; i++)
-	{
-		if (strcomp(name, register_names[i]))
-		{
-			return i;
-		}
-	}
-
-	return -1;
 }
 
 const char* read_reg(const char *code, int *reg_out)
@@ -723,6 +771,11 @@ int emit_code(instruction_t *inst)
 		}
 		else if (operand_type == IMM)
 		{
+			if (half_byte)
+			{
+				half_byte = 0;
+				output_bytes++;
+			}
 			if (inst->arg[i].type & SYMBOL)
 			{
 				symbol_references[inst->arg[i].value].position = output_bytes;
@@ -774,7 +827,7 @@ void parse_code(const char *code, int number_of_bytes)
 	int i;
 	int state = 0;
 	int line_number = 1;
-	char instruction[10];
+	char instruction[256];
 	const char *current_line;
 	const char *code_beginning = code;
 	instruction_t inst = { 0 };
@@ -852,7 +905,7 @@ void parse_code(const char *code, int number_of_bytes)
 int main(int argc, char *argv[])
 {
 	char *filebuffer;
-	int size = 0, i;
+	uint32_t size = 0, i;
 	size_t read;
 	FILE* fp;
 	if (argc != 2)
@@ -872,7 +925,7 @@ int main(int argc, char *argv[])
 
 	fclose(fp);
 
-	parse_code(filebuffer, read);
+	parse_code(filebuffer, (int)read);
 
 	resolve_symbols();
 
