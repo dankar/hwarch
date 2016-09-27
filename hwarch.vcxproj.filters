@@ -24,7 +24,10 @@
     <ClCompile Include="src\helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dkcpu.cpp">
+    <ClCompile Include="src\dkcpu_definition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dkcpu_implementation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +41,10 @@
     <ClInclude Include="src\helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\dkcpu.h">
+    <ClInclude Include="src\dkcpu_definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dkcpu_implementation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

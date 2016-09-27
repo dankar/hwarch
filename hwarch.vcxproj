@@ -143,13 +143,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\cpu.cpp" />
-    <ClCompile Include="src\dkcpu.cpp" />
+    <ClCompile Include="src\dkcpu_implementation.cpp" />
+    <ClCompile Include="src\dkcpu_definition.cpp" />
     <ClCompile Include="src\helpers.cpp" />
     <ClCompile Include="src\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cpu.h" />
-    <ClInclude Include="src\dkcpu.h" />
+    <ClInclude Include="src\dkcpu_implementation.h" />
+    <ClInclude Include="src\dkcpu_definition.h" />
     <ClInclude Include="src\helpers.h" />
     <ClInclude Include="src\opcodes.h" />
   </ItemGroup>

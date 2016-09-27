@@ -7,7 +7,7 @@
 #include <iomanip>
 #include "cpu.h"
 #include "helpers.h"
-#include "dkcpu.h"
+#include "dkcpu_definition.h"
 
 int main(int argc, char *argv[])
 {
