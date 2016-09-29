@@ -57,34 +57,38 @@ for inst in op_codes:
 	print "::Register(cpu, \"" + inst[2] + "\");"
 	
 for inst in op_codes:
-	print "{ \"" + inst[2] + "\", {"
+	print "{ \"" + inst[2] + "\", {",
 	num_parameters = len(inst) - 3
 	operands_bits = 0
 	for i in range(num_parameters):
 		operand = inst[3+i]
 		if operand == reg4:
-			print " { REG, 0, 0 },"
+			print " { REG, 0, 0 },",
 			
 		if type(operand) is list:
 			if len(operand) == 1:
-				print " { IND, 0, 0 },"
+				print " { IND, 0, 0 },",
 			else:
-				print " { IND_OFFSET, 0, 0 },"
+				print " { IND_OFFSET, 0, 0 },",
 				
 		if operand == imm32:
 			operands_bits += 32
-			print " { IMM, 0, 0 },"
+			print " { IMM | IMM_32, 0, 0 },",
+			
+		if operand == imm16:
+			operands_bits += 16
+			print " { IMM | IMM_16, 0, 0 },",
 			
 		
 	
 	
 		
 	for i in range(3 - num_parameters):
-		print " { NONE, 0, 0 },"
+		print " { NONE, 0, 0 },",
 		
-	print "},"
+	print "},",
 	
-	print " 0x" + format(inst[0], '02x')
+	print " 0x" + format(inst[0], '02x'),
 	print "},"
 		
 		

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "strings.h"
 
+#define DEBUG_SYMBOLS 1
+
 #define MAX_SYMS 256
 
 symbol_t symbols[MAX_SYMS] = { 0 };
@@ -16,13 +18,16 @@ void insert_symbol(const char *instruction, uint32_t position)
 		{
 			strcopy(symbols[i].name, instruction);
 			symbols[i].position = position;
+#ifdef DEBUG_SYMBOLS
+			printf("Inserting symbol '%s' at position %d\n", instruction, position);
+#endif
 			break;
 		}
 	}
 
 	if (i == MAX_SYMS-1)
 	{
-		printf("Output of symbols!\n");
+		printf("Out of symbols!\n");
 		__debugbreak();
 	}
 }
@@ -35,13 +40,16 @@ uint32_t insert_symbol_reference(const char *instruction, uint32_t position)
 		if (symbol_references[i].name[0] == 0)
 		{
 			strcopy(symbol_references[i].name, instruction);
+#ifdef DEBUG_SYMBOLS
+			printf("Inserting reference to '%s' (%d) at '%d'\n", instruction, i, position);
+#endif
 			break;
 		}
 	}
 
 	if (i == MAX_SYMS-1)
 	{
-		printf("Output of symbol references!\n");
+		printf("Out of symbol references!\n");
 		__debugbreak();
 	}
 

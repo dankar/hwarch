@@ -226,7 +226,7 @@ int emit_code(output_state_t *state, instruction_t *inst)
 
 		for (j = 0; j < 3; j++)
 		{
-			if (instructions[i].arg[j].type != (inst->arg[j].type & ~SYMBOL))
+			if ((instructions[i].arg[j].type & 0xf) != (inst->arg[j].type & 0xf))
 			{
 				found = 0;
 			}
@@ -244,29 +244,38 @@ int emit_code(output_state_t *state, instruction_t *inst)
 
 	state->byte_code[state->byte_position++] = instructions[i].op_code;
 
-	for (int i = 0; i < 3; i++)
+	for (j = 0; j < 3; j++)
 	{
-		uint8_t operand_type = inst->arg[i].type & ~SYMBOL;
+		uint8_t operand_type = instructions[i].arg[j].type & ~SYMBOL;
 		if (operand_type == REG)
 		{
-			emit_register(state, inst->arg[i].value);
+			emit_register(state, inst->arg[j].value);
 		}
-		else if (operand_type == IMM)
+		else if (operand_type == (IMM_32 | IMM))
 		{
 			fix_half_byte(state);
-			if (inst->arg[i].type & SYMBOL)
+			if (inst->arg[j].type & SYMBOL)
 			{
-				update_symbol_position(inst->arg[i].value, state->byte_position, 4);
+				update_symbol_position(inst->arg[j].value, state->byte_position, 4);
 			}
-			emit_immediate(state, inst->arg[i].value);
+			emit_immediate(state, inst->arg[j].value);
+		}
+		else if (operand_type == (IMM_16 | IMM))
+		{
+			fix_half_byte(state);
+			if (inst->arg[j].type & SYMBOL)
+			{
+				update_symbol_position(inst->arg[j].value, state->byte_position, 2);
+			}
+			emit_immediate16(state, inst->arg[j].value);
 		}
 		else if (operand_type == IND)
 		{
-			emit_register(state, inst->arg[i].value);
+			emit_register(state, inst->arg[j].value);
 		}
 		else if (operand_type == IND_OFFSET)
 		{
-			emit_register(state, inst->arg[i].value);
+			emit_register(state, inst->arg[j].value);
 
 			if (state->half_byte)
 			{
@@ -275,9 +284,9 @@ int emit_code(output_state_t *state, instruction_t *inst)
 			}
 			if (inst->arg[i].type & SYMBOL)
 			{
-				update_symbol_position(inst->arg[i].value, state->byte_position, 2);
+				update_symbol_position(inst->arg[j].value, state->byte_position, 2);
 			}
-			emit_immediate16(state, inst->arg[i].val2);
+			emit_immediate16(state, inst->arg[j].val2);
 		}
 		else if (operand_type == NONE)
 		{

@@ -1,17 +1,8 @@
 		ld %sp, stack
-		call testfunc
-		call testfunc2
-		call another_func
+		push hello
+		call print
+		add %sp, %sp, 0x4
 		hlt
-testfunc:
-		ld %r1, stack
-		ret
-testfunc2:
-		push %r2
-		ld %r2, stack
-		call testfunc
-		pop %r2
-		ret
 hello:
 		db 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
 		db 0x00 rep 0x200

@@ -15,11 +15,12 @@ void LoadCPUInstructions(CPU *cpu)
 	Operation<0x08, or , true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "or");
 	Operation<0x09, not, true, Register<4>, Register<4>, NullVal<0>, 0> ::Register(cpu, "not");
 	Operation<0x0a, add, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "add");
-	Operation<0x0b, sub, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "sub");
-	Operation<0x0c, shl, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "shl");
-	Operation<0x0d, shr, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "shr");
-	Operation<0x0e, rol, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "rol");
-	Operation<0x0f, ror, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "ror");
+	Operation<0x0b, add, true, Register<4>, Register<4>, Immediate<16>, 0> ::Register(cpu, "add");
+	Operation<0x0c, sub, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "sub");
+	Operation<0x0d, shl, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "shl");
+	Operation<0x0e, shr, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "shr");
+	Operation<0x0f, rol, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "rol");
+	Operation<0x10, ror, true, Register<4>, Register<4>, Register<4>, 4> ::Register(cpu, "ror");
 	Operation<0x20, push, true, NullVal<0>, Register<4>, NullVal<0>, 4> ::Register(cpu, "push");
 	Operation<0x21, push, true, NullVal<0>, Immediate<32>, NullVal<0>, 0> ::Register(cpu, "push");
 	Operation<0x22, push, true, NullVal<4>, Indirect<32, Register<4>, Immediate<16>>, NullVal<0>, 0> ::Register(cpu, "push");

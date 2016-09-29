@@ -7,7 +7,10 @@
 #define IND 2
 #define IND_OFFSET 3
 #define IMM 4
+#define IMM_16 0x20
+#define IMM_32 0x40
 #define SYMBOL 0x80
+
 
 #define STATE_EMPTY 0
 #define STATE_GOT_INST 0

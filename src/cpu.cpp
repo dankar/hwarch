@@ -4,6 +4,60 @@
 #include "cpu.h"
 #include "helpers.h"
 
+uint64_t be64(uint64_t val)
+{
+	uint64_t result = 0;
+	uint8_t *b = (uint8_t*)&result;
+
+	b[7] = val & 0xff;
+	val >>= 8;
+	b[6] = val & 0xff;
+	val >>= 8;
+	b[5] = val & 0xff;
+	val >>= 8;
+	b[4] = val & 0xff;
+	val >>= 8;
+	b[3] = val & 0xff;
+	val >>= 8;
+	b[2] = val & 0xff;
+	val >>= 8;
+	b[1] = val & 0xff;
+	val >>= 8;
+	b[0] = val & 0xff;
+	val >>= 8;
+
+	return result;
+}
+
+uint32_t be32(uint32_t val)
+{
+	uint32_t result = 0;
+	uint8_t *b = (uint8_t*)&result;
+
+	b[3] = val & 0xff;
+	val >>= 8;
+	b[2] = val & 0xff;
+	val >>= 8;
+	b[1] = val & 0xff;
+	val >>= 8;
+	b[0] = val & 0xff;
+	val >>= 8;
+
+	return result;
+}
+
+uint16_t be16(uint16_t val)
+{
+	uint16_t result = 0;
+	uint8_t *b = (uint8_t*)&result;
+
+	b[1] = val & 0xff;
+	val >>= 8;
+	b[0] = val & 0xff;
+	val >>= 8;
+
+	return result;
+}
 
 CPU::CPU(uint32_t memory_size) :
 	m_state({ 0 })
@@ -28,11 +82,11 @@ CPU::~CPU()
 
 uint32_t CPU::ReadMemory32(uint32_t offset)
 {
-	return *(uint32_t*)&m_state.memory[offset];
+	return be32(*(uint32_t*)&m_state.memory[offset]);
 }
 uint16_t CPU::ReadMemory16(uint32_t offset)
 {
-	return *(uint16_t*)&m_state.memory[offset];
+	return be16(*(uint16_t*)&m_state.memory[offset]);
 }
 uint8_t CPU::ReadMemory8(uint32_t offset)
 {
@@ -40,20 +94,20 @@ uint8_t CPU::ReadMemory8(uint32_t offset)
 }
 uint64_t CPU::ReadMemory64(uint32_t offset)
 {
-	return *(uint64_t*)&m_state.memory[offset];
+	return be64(*(uint64_t*)&m_state.memory[offset]);
 }
 void CPU::WriteMemory64(uint32_t offset, uint64_t value)
 {
-	*(uint64_t*)&m_state.memory[offset] = value;
+	*(uint64_t*)&m_state.memory[offset] = be64(value);
 }
 
 void CPU::WriteMemory32(uint32_t offset, uint32_t value)
 {
-	*(uint32_t*)&m_state.memory[offset] = value;
+	*(uint32_t*)&m_state.memory[offset] = be32(value);
 }
 void CPU::WriteMemory16(uint32_t offset, uint16_t value)
 {
-	*(uint16_t*)&m_state.memory[offset] = value;
+	*(uint16_t*)&m_state.memory[offset] = be16(value);
 }
 void CPU::WriteMemory8(uint32_t offset, uint8_t value)
 {
@@ -90,35 +144,9 @@ void CPU::AddDevice(uint32_t bar, CDevice *device)
 
 }
 
-uint64_t be(uint64_t val)
-{
-	uint64_t result = 0;
-	uint8_t *b = (uint8_t*)&result;
-
-	b[7] = val & 0xff;
-	val >>= 8;
-	b[6] = val & 0xff;
-	val >>= 8;
-	b[5] = val & 0xff;
-	val >>= 8;
-	b[4] = val & 0xff;
-	val >>= 8;
-	b[3] = val & 0xff;
-	val >>= 8;
-	b[2] = val & 0xff;
-	val >>= 8;
-	b[1] = val & 0xff;
-	val >>= 8;
-	b[0] = val & 0xff;
-	val >>= 8;
-	
-	return result;
-}
-
 uint64_t CPU::GetOperation()
 {
 	uint64_t operation = ReadMemory64(m_state.ip);
-	operation = be(operation);
 	return operation;
 }
 

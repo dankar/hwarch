@@ -20,11 +20,12 @@ op_codes = [
  [ 0x09, True, "not", reg4, reg4 ],
 
  [ 0x0a, True, "add", reg4, reg4, reg4 ],
- [ 0x0b, True, "sub", reg4, reg4, reg4 ],
- [ 0x0c, True, "shl", reg4, reg4, reg4 ],
- [ 0x0d, True, "shr", reg4, reg4, reg4 ],
- [ 0x0e, True, "rol", reg4, reg4, reg4 ],
- [ 0x0f, True, "ror", reg4, reg4, reg4 ],
+ [ 0x0b, True, "add", reg4, reg4, imm16 ],
+ [ 0x0c, True, "sub", reg4, reg4, reg4 ],
+ [ 0x0d, True, "shl", reg4, reg4, reg4 ],
+ [ 0x0e, True, "shr", reg4, reg4, reg4 ],
+ [ 0x0f, True, "rol", reg4, reg4, reg4 ],
+ [ 0x10, True, "ror", reg4, reg4, reg4 ],
  
  [ 0x20, True, "push", null0, reg4 ],
  [ 0x21, True, "push", null0, imm32],
