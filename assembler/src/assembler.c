@@ -150,6 +150,57 @@ const char* get_operand(const char *code, argument_t *argument)
 			__debugbreak();
 		}
 	}
+	else if (*code == 'b' || *code == 'w' || *code == 'd')
+	{
+		code++;
+		argument->type = IND;
+
+		code = read_reg(code, &tmp);
+		if (tmp == -1)
+		{
+			printf("Invalid format for indirect\n");
+			__debugbreak();
+		}
+
+		argument->value = tmp;
+
+		code = skip_whitespace(code);
+
+		if (*code == ']')
+		{
+			code++;
+			return code;
+		}
+		if (*code == '+')
+		{
+			code++;
+		}
+
+		code = read_immediate(code, &imm_val, &tmp);
+		if (tmp == -1)
+		{
+			printf("Invalid immediate in indirect\n");
+			__debugbreak();
+		}
+		if (tmp == SYMBOL)
+			argument->type = IND_OFFSET | SYMBOL;
+		else
+			argument->type = IND_OFFSET;
+		argument->val2 = imm_val;
+
+		code = skip_whitespace(code);
+
+		if (*code == ']')
+		{
+			code++;
+			return code;
+		}
+		else
+		{
+			printf("Expected ] after indirect\n");
+			__debugbreak();
+		}
+	}
 	else
 	{
 		argument->type = IMM;

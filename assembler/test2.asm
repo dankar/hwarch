@@ -10,16 +10,16 @@ print:
 	push %r3
 
 	# arg in r0
-	ld %r0, [%fp+0x8]
+	ld %r0, b [%fp+0x8]
 	ld %r1, 0x0
 	ld %r3, target
 
 print_loop:
-	ld %r2, [%r0]
+	ld %r2, b [%r0]
 	cmp %r2, %r1
 	jz print_end
 
-	ld [%r3], %r2
+	ld b [%r3], %r2
 	add %r3, %r3, 0x1
 	add %r0, %r0, 0x1
 	jmp print_loop
