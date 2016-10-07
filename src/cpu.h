@@ -211,6 +211,12 @@ public:
 	void GetString(std::stringstream &s, CPU *cpu)
 	{
 		// [val.GetString + m_Offset]
+		if (memory_access_width == 32)
+			s << "d ";
+		if (memory_access_width == 16)
+			s << "w ";
+		if (memory_access_width == 8)
+			s << "b ";
 		s << "[";
 		m_val.GetString(s, cpu);
 		if (m_offset.GetSize())
