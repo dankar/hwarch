@@ -10,7 +10,7 @@ print:
 	push %r3
 
 	# arg in r0
-	ld %r0, b [%fp+0x8]
+	ld %r0, d [%fp+0x8]
 	ld %r1, 0x0
 	ld %r3, target
 

@@ -152,8 +152,26 @@ const char* get_operand(const char *code, argument_t *argument)
 	}
 	else if (*code == 'b' || *code == 'w' || *code == 'd')
 	{
-		code++;
 		argument->type = IND;
+
+		if (*code == 'b')
+			argument->type |= IND_8;
+		if (*code == 'w')
+			argument->type |= IND_16;
+		if (*code == 'd')
+			argument->type |= IND_32;
+
+		*code++;
+		code = skip_whitespace(code);
+
+		if (*code != '[')
+		{
+			printf("Found bit width specifier but no indirect\n");
+			__debugbreak();
+		}
+		
+		code++;
+		code = skip_whitespace(code);
 
 		code = read_reg(code, &tmp);
 		if (tmp == -1)
@@ -185,7 +203,7 @@ const char* get_operand(const char *code, argument_t *argument)
 		if (tmp == SYMBOL)
 			argument->type = IND_OFFSET | SYMBOL;
 		else
-			argument->type = IND_OFFSET;
+			argument->type = (argument->type & ~IND) | IND_OFFSET;
 		argument->val2 = imm_val;
 
 		code = skip_whitespace(code);
@@ -277,7 +295,7 @@ int emit_code(output_state_t *state, instruction_t *inst)
 
 		for (j = 0; j < 3; j++)
 		{
-			if ((instructions[i].arg[j].type & 0xf) != (inst->arg[j].type & 0xf))
+			if ((instructions[i].arg[j].type & 0xf0f) != (inst->arg[j].type & 0xf0f))
 			{
 				found = 0;
 			}
@@ -297,7 +315,7 @@ int emit_code(output_state_t *state, instruction_t *inst)
 
 	for (j = 0; j < 3; j++)
 	{
-		uint8_t operand_type = instructions[i].arg[j].type & ~SYMBOL;
+		uint8_t operand_type = instructions[i].arg[j].type & ~(0xf00 | SYMBOL);
 		if (operand_type == REG)
 		{
 			emit_register(state, inst->arg[j].value);

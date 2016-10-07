@@ -4,7 +4,7 @@
 
 typedef struct
 {
-	uint8_t type;
+	uint16_t type;
 	uint32_t value;
 	uint32_t val2;
 } argument_t;

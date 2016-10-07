@@ -1,7 +1,6 @@
 import os
 from cpu_definition import *
 
-
 for inst in op_codes:
 	print("Operation<0x" + format(inst[0], '02x') + ", " + inst[2] + ", " + ("true" if inst[1] else "false") + ", "),
 	
@@ -17,20 +16,20 @@ for inst in op_codes:
 			print "NullVal<4>,",
 			
 		if type(operand) is list:
-			print "Indirect<32, ",
-			if len(operand) == 1:
+			print "Indirect<" + str(operand[0]) + ", ",
+			if len(operand) == 2:
 				print "Register<4>, NullVal<0>>,",
 				operands_bits += 4
 			else:
 				print "Register<4>, ",
 				operands_bits += 4
-				if operand[1] == imm16:
+				if operand[2] == imm16:
 					operands_bits += 16
 					print "Immediate<16>>,",
-				if operand[1] == imm20:
+				if operand[2] == imm20:
 					operands_bits += 20
 					print "Immediate<20>>,",
-				if operand[1] == imm32:
+				if operand[2] == imm32:
 					operands_bits += 32
 					print "Immediate<32>>,",
 		if operand == imm16:
@@ -66,10 +65,17 @@ for inst in op_codes:
 			print " { REG, 0, 0 },",
 			
 		if type(operand) is list:
-			if len(operand) == 1:
-				print " { IND, 0, 0 },",
+			print "{",
+			if operand[0] == 32:
+				print "IND_32 | ",
+			if operand[0] == 16:
+				print "IND_16 | ",
+			if operand[0] == 8:
+				print "IND_8 | ",
+			if len(operand) == 2:
+				print "IND, 0, 0 },",
 			else:
-				print " { IND_OFFSET, 0, 0 },",
+				print "IND_OFFSET, 0, 0 },",
 				
 		if operand == imm32:
 			operands_bits += 32

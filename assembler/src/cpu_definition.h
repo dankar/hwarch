@@ -10,6 +10,9 @@
 #define IMM_16 0x20
 #define IMM_32 0x40
 #define SYMBOL 0x80
+#define IND_32 0x00
+#define IND_16 0x0100
+#define IND_8  0x0200
 
 
 #define STATE_EMPTY 0
